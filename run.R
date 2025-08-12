@@ -103,4 +103,7 @@ for (i in seq_len(nrow(zips))) {
            error = function(e) write_log(log_file, glue::glue("Cleanup fehlgeschlagen: {e$message}"), type = "WARN"))
 }
 
+tryCatch(clean_dir(cfg$paths$temp),
+         error = function(e) write_log(log_file, glue::glue("Temp cleanup failed: {e$message}"), type = "WARN"))
+
 write_log(log_file, "Run abgeschlossen")
