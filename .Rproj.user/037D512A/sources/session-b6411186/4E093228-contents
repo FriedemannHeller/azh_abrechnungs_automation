@@ -27,7 +27,7 @@ get_zip_files <- function(input_dir) {
 }
 
 extract_date_from_filename <- function(filename, prefix = "Anhang_") {
-  date_str <- stringr::str_extract(filename, "\u005cd{2}\.\u005cd{2}\.\u005cd{4}")
+  date_str <- stringr::str_extract(filename, "\\d{2}\\.\\d{2}\\.\\d{4}")
   if (is.na(date_str)) return(NA)
   parsed <- suppressWarnings(lubridate::dmy(date_str))
   if (is.na(parsed)) NA else parsed
