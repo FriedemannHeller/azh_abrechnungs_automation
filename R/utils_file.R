@@ -74,3 +74,8 @@ norm_pdf_name <- function(path) {
   tools::file_path_sans_ext(fs::path_file(path))
 }
 
+list_pdfs <- function(dir) {
+  if (!fs::dir_exists(dir)) return(character())
+  fs::dir_ls(dir, type = "file", glob = "*.pdf", recurse = FALSE)
+}
+
