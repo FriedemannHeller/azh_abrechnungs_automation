@@ -1,7 +1,8 @@
 @echo off
 REM ===============================================
 REM Launcher für Abrechnungs-Automatisierung (Windows)
-REM Startet run.R und öffnet danach das neueste Log
+REM Startet run.R, öffnet danach das neueste Log
+REM und zeigt den Export-Ordner im Explorer
 REM ===============================================
 
 REM Zum Ordner wechseln, in dem das Skript liegt
@@ -31,9 +32,15 @@ set "logdir=logs"
 if exist "%logdir%" (
   for /f "delims=" %%F in ('dir /b /a-d /o-d "%logdir%\*.txt" 2^>nul') do (
     start "" "%logdir%\%%F"
-    goto end
+    goto openexport
   )
 )
-goto end
+
+:openexport
+REM Export-Ordner im Explorer öffnen
+set "exportdir=export"
+if exist "%exportdir%" (
+  start "" "%exportdir%"
+)
 
 :end
