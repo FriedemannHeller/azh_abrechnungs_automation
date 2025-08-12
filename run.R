@@ -19,8 +19,13 @@ write_log(log_file, glue::glue("Konfiguration: process_all_zips={cfg$process_all
 zips <- get_zip_files(cfg$paths$input)
 if (nrow(zips) == 0) {
   write_log(log_file, "Keine ZIP-Dateien gefunden", type = "INFO")
-  quit(save = "no")
+  if (interactive()) {
+    stop("Keine ZIP-Dateien gefunden")  # Beendet nur den aktuellen Lauf
+  } else {
+    quit(save = "no", status = 0)       # Für Batch-Skripte
+  }
 }
+
 
 if (!cfg$process_all_zips) {
   zips <- zips[which.max(zips$mtime), , drop = FALSE]
