@@ -1,9 +1,27 @@
 # config.R
-# Konfigurationsdatei für die Abrechnungs-Automatisierung.
-# Enthält alle variablen Einstellungen:
-# - Relative Pfade zu den Ordnern input, temp, export, archive, logs
-# - Reihenfolge, in der die PDFs zusammengeführt werden sollen
-# - Optionen für Logging (z. B. ob Log automatisch geöffnet werden soll)
-# - Eventuell Filter, falls nur bestimmte ZIP-Dateien verarbeitet werden sollen
-#
-# Anpassungen hier ermöglichen es, das Script auf verschiedenen Rechnern ohne Codeänderungen zu betreiben.
+# Konfigurationen für die Abrechnungs-Automatisierung
+
+cfg <- list(
+  paths = list(
+    input = "input",
+    temp = "temp",
+    export = "export",
+    archive = "archive",
+    logs = "logs"
+  ),
+  pdf_desired_order = c(
+    "Absetzungen",
+    "Betriebswirtschaftliche_Auswertung",
+    "Einzelpositionsliste",
+    "Kassenübersicht",
+    "Positionsstatistik",
+    "Rechnung",
+    "Übersicht_zur_Abrechnung"
+  ),
+  open_log_after_run = FALSE,
+  process_all_zips = TRUE,
+  zip_name_prefix = "Anhang_",
+  output_name_format = "yyyy_mm_dd_Abrechnung_azh.pdf",
+  log_level = "INFO"
+)
+

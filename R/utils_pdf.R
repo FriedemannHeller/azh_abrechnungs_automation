@@ -1,16 +1,29 @@
 # utils_pdf.R
-# Hilfsfunktionen für PDF-Verarbeitung.
-# Aufgaben:
-# - Reihenfolge der PDFs bestimmen
-# - Mehrere PDFs zu einer zusammenführen
-#
-# Diese Funktionen sorgen dafür, dass die PDFs im gewünschten Ablauf
-# zu einer Datei kombiniert werden, z. B. "yyyy_mm_dd_Abrechnung_azh.pdf".
+# PDF-Verarbeitung
 
-# Funktion: order_pdfs(pdf_files, desired_order)
-#   Sortiert eine Liste von PDF-Dateipfaden so, dass sie der gewünschten Reihenfolge entsprechen.
-#   desired_order ist ein Vektor mit Dateinamen oder Teilen davon.
+order_pdfs <- function(pdf_files, desired_order) {
+  if (!length(pdf_files)) return(character())
+  names <- norm_pdf_name(pdf_files)
+  used <- logical(length(pdf_files))
+  ordered <- character()
+  for (d in desired_order) {
+    idx <- which(names == d & !used)
+    if (length(idx)) {
+      ordered <- c(ordered, pdf_files[idx[1]])
+      used[idx[1]] <- TRUE
+    }
+  }
+  remaining <- pdf_files[!used]
+  if (length(remaining)) {
+    rem_names <- norm_pdf_name(remaining)
+    ordered <- c(ordered, remaining[order(rem_names)])
+  }
+  ordered
+}
 
-# Funktion: merge_pdfs(pdf_files, output_path)
-#   Führt die PDFs in der angegebenen Reihenfolge zusammen und speichert sie unter output_path.
-#   Nutzt dafür z. B. das Paket qpdf oder pdftools.
+merge_pdfs <- function(pdf_files, output_path) {
+  if (length(pdf_files) == 0) stop("No PDF files to merge")
+  qpdf::pdf_combine(input = pdf_files, output = output_path)
+  output_path
+}
+
