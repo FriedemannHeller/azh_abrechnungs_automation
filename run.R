@@ -5,8 +5,9 @@ source("config.R")
 source("R/utils_log.R")
 source("R/utils_file.R")
 source("R/utils_pdf.R")
+source("R/utils_extract.R")
 
-installed_or_install(c("fs","stringr","glue","qpdf","lubridate"))
+installed_or_install(c("fs","stringr","glue","qpdf","lubridate","pdftools"))
 
 lapply(cfg$paths, ensure_dir)
 log_file <- init_log(cfg$paths$logs)
@@ -47,8 +48,39 @@ for (i in seq_len(nrow(zips))) {
     next
   }
   ordered <- order_pdfs(pdfs, cfg$pdf_desired_order)
-  output_name <- glue::glue("{format(d, '%Y_%m_%d')}_Abrechnung_azh.pdf")
+  res <- extract_kundennummer(work_dir)
+  kundennr <- res$kundennummer
+  if (res$used_fallback) {
+    write_log(log_file, "kundennummer not found in overview PDF; using fallback scan", type = "WARN")
+  }
+  if (!is.na(kundennr)) {
+    write_log(log_file, glue::glue("Extracted kundennummer: {kundennr}"))
+    row <- cfg$kunde_map[cfg$kunde_map$kundennummer == kundennr, , drop = FALSE]
+    if (nrow(row) == 1) {
+      filiale <- row$filiale[1]
+      ks <- row$kostenstelle[1]
+      write_log(log_file, glue::glue("Matched filiale={filiale}, kostenstelle={ks}"))
+    } else {
+      filiale <- NA
+      ks <- NA
+      write_log(log_file, "kundennummer not in mapping; using kundennummer only", type = "INFO")
+    }
+  } else {
+    write_log(log_file, "kundennummer could not be extracted; using fallback filename", type = "WARN")
+    filiale <- NA
+    ks <- NA
+  }
+  date_str <- format(d, "%Y_%m_%d")
+  if (!is.na(kundennr) && !is.na(filiale) && !is.na(ks)) {
+    output_name <- glue::glue("{date_str}_{ks}_{filiale}_{kundennr}_Abrechnung_azh.pdf")
+  } else if (!is.na(kundennr)) {
+    output_name <- glue::glue("{date_str}_{kundennr}_Abrechnung_azh.pdf")
+  } else {
+    output_name <- glue::glue("{date_str}_Abrechnung_azh.pdf")
+  }
+  output_name <- gsub("\\s+", "_", output_name)
   out_path <- unique_path(fs::path(cfg$paths$export, output_name))
+  write_log(log_file, glue::glue("Finaler Exportpfad: {out_path}"))
   ok <- tryCatch({
     merge_pdfs(ordered, out_path)
     TRUE
