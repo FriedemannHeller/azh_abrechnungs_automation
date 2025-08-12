@@ -23,8 +23,17 @@ write_log <- function(log_file, message, type = "INFO") {
   write(line, log_file, append = TRUE)
 }
 
-close_log <- function(log_file, open_after = FALSE) {
+prune_logs <- function(log_dir, keep = 30) {
+  files <- fs::dir_ls(log_dir, glob = "log_*.txt", type = "file")
+  if (length(files) <= keep) return()
+  info <- fs::file_info(files)
+  files_to_delete <- files[order(info$modification_time, decreasing = TRUE)][(keep + 1):length(files)]
+  fs::file_delete(files_to_delete)
+}
+
+close_log <- function(log_file, open_after = FALSE, max_logs = 30) {
   write_log(log_file, "Run finished", type = "INFO")
+  prune_logs(fs::path_dir(log_file), max_logs)
   if (open_after) {
     sys <- Sys.info()[["sysname"]]
     if (sys == "Windows") {
