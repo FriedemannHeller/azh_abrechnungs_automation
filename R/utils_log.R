@@ -1,19 +1,37 @@
 # utils_log.R
-# Hilfsfunktionen für Logging.
-# Aufgaben:
-# - Erstellen einer neuen Log-Datei
-# - Schreiben von Einträgen in verschiedenen Log-Leveln (INFO, WARN, ERROR)
-# - Optionales automatisches Öffnen des Logs nach Abschluss
-#
-# Logs dokumentieren jeden Schritt des Skripts und helfen beim Debugging.
+# Logging-Helferfunktionen
 
-# Funktion: init_log(log_dir)
-#   Erstellt eine neue Log-Datei im angegebenen Verzeichnis und gibt den Dateipfad zurück.
+ensure_dir <- function(path) {
+  if (!fs::dir_exists(path)) {
+    fs::dir_create(path, recurse = TRUE)
+  }
+}
 
-# Funktion: write_log(log_file, message, type = "INFO")
-#   Schreibt einen Eintrag in die Log-Datei.
-#   type kann "INFO", "WARN" oder "ERROR" sein.
+ts <- function() {
+  format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+}
 
-# Funktion: close_log(log_file)
-#   Schreibt einen Abschluss-Eintrag in die Log-Datei (z. B. "Workflow erfolgreich abgeschlossen").
-#   Kann optional den Log automatisch im Standard-Texteditor öffnen.
+init_log <- function(log_dir) {
+  ensure_dir(log_dir)
+  file <- fs::path(log_dir, glue::glue("log_{format(Sys.time(), '%Y-%m-%d_%H-%M-%S')}.txt"))
+  writeLines(glue::glue("[{ts()}] [INFO] Log initialized"), file)
+  file
+}
+
+write_log <- function(log_file, message, type = "INFO") {
+  line <- glue::glue("[{ts()}] [{type}] {message}")
+  write(line, log_file, append = TRUE)
+}
+
+close_log <- function(log_file, open_after = FALSE) {
+  write_log(log_file, "Run finished", type = "INFO")
+  if (open_after) {
+    sys <- Sys.info()[["sysname"]]
+    if (sys == "Windows") {
+      shell.exec(log_file)
+    } else {
+      utils::file.show(log_file)
+    }
+  }
+}
+
